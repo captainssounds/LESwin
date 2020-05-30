@@ -111,7 +111,6 @@ if (ErrorLevel = 1 or !(OutputVar = 0))
     
     FileInstall, menuconfig.ini, %A_ScriptDir%/menuconfig.ini
     FileInstall, settings.ini, %A_ScriptDir%/settings.ini
-    FileInstall, changelog.txt, %A_ScriptDir%/changelog.txt
     
     MsgBox, 4, Live Enhancement Suite, Welcome to the Live Enhancement Suite!`nWould you like to add the Live Enhancement Suite to startup?`nIt won't do anything when you're not using Ableton Live.`n(This can be changed anytime)
     IfMsgBox, Yes
@@ -205,10 +204,6 @@ if (ErrorLevel = 1)
 Outputvar := ;
 
 sleep, 10
-
-; updating the changelog.txt file with the one included in the current package
-FileDelete, %A_ScriptDir%\changelog.txt
-FileInstall, changelog.txt, %A_ScriptDir%\changelog.txt
 
 ;-----------------------------------;
 ;		 reading Settings.ini		;

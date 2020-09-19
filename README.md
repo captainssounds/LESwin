@@ -1,4 +1,4 @@
-# Live Enhancement Suite (Captain Hack)
+# Live Enhancement Suite (Captain Hack) for Windows
 I love LES, it makes Live so much better. Sadly, after the 1.3 release, I started experiencing side effects from some of the new features.
 So, like any open source software that I can change to suite my needs, I have.
 

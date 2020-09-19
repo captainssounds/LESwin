@@ -2,7 +2,7 @@
 * * * Compile_AHK SETTINGS BEGIN * * *
 
 [AHK2EXE]
-Exe_File=%In_Dir%\Live Enhancement Suite 1.3.1 (Captains hax).exe
+Exe_File=%In_Dir%\Live Enhancement Suite 1.3.2 (Captains hax).exe
 Compression=0
 No_UPX=1
 Created_Date=1
@@ -10,13 +10,13 @@ Created_Date=1
 Set_Version_Info=1
 Company_Name=Inverted Silence & Dylan Tallchief
 File_Description=Live Enhancement Suite
-File_Version=0.1.3.1
+File_Version=0.1.3.2
 Inc_File_Version=0
 Internal_Name=Live Enhancement Suite
 Legal_Copyright=© 2019
 Original_Filename=Live Enhancement Suite
 Product_Name=Live Enhancement Suite (Captain's Hax)
-Product_Version=0.1.3.1
+Product_Version=0.1.3.2
 [ICONS]
 Icon_1=%In_Dir%\resources\blueico.ico
 Icon_2=%In_Dir%\resources\blueico.ico
@@ -77,7 +77,7 @@ Menu, Tray, Default, Exit
 Menu, Tray, insert, 9&, Reload, doreload
 
 ; // CPT - Removed quirky rando quotes
-Menu, Tray, Tip, Ableton Live Enhancement Suite 1.3.1 (Captain Hack)
+Menu, Tray, Tip, Ableton Live Enhancement Suite 1.3.2 (Captain Hack)
 
 ;-----------------------------------;
 ;		 Installation		;
@@ -750,7 +750,7 @@ loop, 1
     
     openplugin: ;you would think consistently typing something in the ableton search bar would be easy 
     Send,{ctrl down}{f}{ctrl up}
-    Sendinput % queryname
+    SendInput % queryname
     WinWaitActive, ExcludeText - ExcludeTitle, , 0.5 ; prevents the keystrokes from desynchronizing when ableton lags during the search query.
     
     if (pressingalt = 1) 
@@ -881,140 +881,76 @@ return
 ;-----------------------------------;
 
 midiclip:
-    Sendinput, {ctrl down}{ShiftDown}{m}{ShiftUp}{ctrl up}
+    SendInput, {ctrl down}{ShiftDown}{m}{ShiftUp}{ctrl up}
     sleep, 1
-    Sendinput, {ctrl down}{j}{ctrl up}
+    SendInput, {ctrl down}{j}{ctrl up}
 return
 
 savenewver: 
-; this section does the ctrl+alt+s command and also includes the section that tries to parse the filename in a way that makes sense.
-; I'm not very good at these, but this spaghetti approach works 99% of the time, so it would be ok.
-; Ever since LES 1.0, it's gone through many different iterations.
-Errorlevel := ""
-Sendinput, ^+s
-SetTitleMatchMode, 2
-WinWaitActive, ahk_class #32770,,2 ;this waits for the save dialog thing to show up.
-if (ErrorLevel = 1) 
-{
-return
-}
+    ; this section does the ctrl+alt+s command and also includes the section that tries to parse the filename in a way that makes sense.
+    ; extremely streamlined for caption hack
 
-; // CPT - 5/29/2020 saveasnewver
-BlockInput, On
-ClipSaved := ClipboardAll
-clipboard = ;
-SendInput, {Ctrl down}{a}{Ctrl up}
-SendInput, {Ctrl down}{c}{Ctrl up}
-ClipWait ;
-stuff := Clipboard
-Clipboard := ClipSaved
-
-if (InStr(Stuff, ".als")) 
-{
-    Sendinput, {right}
-    sendinput, {Backspace 4}
-    alsfound := 1
-    StringTrimRight, Stuff, Stuff, 4
-}
-else
-{
-    alsfound := 0
-}
-
-if (Stuff = "Untitled") 
-{ ;safeguard for if the user is trying to do something really unnescesary
-    MsgBox, 4, Live Enhancement Suite, Your project name is "Untitled".`nAre you sure you want to save it as a new version?
-    IfMsgBox Yes
-    {
-        goto enduntitledcycle
-    }
-    else
+    Errorlevel := ""
+    SendInput, ^+s
+    SetTitleMatchMode, 2
+    WinWaitActive, ahk_class #32770,,2 ;this waits for the save dialog thing to show up.
+    if (ErrorLevel = 1) 
     {
         return
     }
-}
-return
 
-enduntitledcycle:
-    ; I don't know if this goto was nescesary or if it was a workaround to fix AHK jank - ...now I'm scared to remove it.
-    
-    EndPos := InStr(Stuff, "_", 0, 0) -1
-    Stuff := SubStr(Stuff, (EndPos))
-    
-    if (InStr(Stuff, "_")) 
+    BlockInput, On
+    clipSaved := ClipboardAll
+    Clipboard = ;
+    SendInput, {Ctrl down}{a}{Ctrl up}
+    SendInput, {Ctrl down}{c}{Ctrl up}
+    ClipWait ;
+    saveName := Clipboard
+    Clipboard := ClipSaved
+
+    extensionPos := InStr(saveName, ".als", false, 0)
+    if (extensionPos > 0)
     {
-        testforletterend := (SubStr(stuff, (0), 1))
-        ;Msgbox % testforletterend
-        if testforletterend is alpha
+        saveName := SubStr(saveName, 1, extensionPos -1)
+    }    
+
+    if (saveName = "Untitled") 
+    { ;safeguard for if the user is trying to do something really unnescesary
+        MsgBox "Your project is untitled, you cannot create a newer version"
+        return
+    }
+    
+    versionString := "1"    
+    underScorePos := InStr(saveName, "_", false, -1)
+    if (underScorePos > 0) 
+    {
+        versionString := SubStr(saveName, underScorePos + 1) ; get existing version
+        if (RegExMatch(versionString, "^[0-9]*$")) 
         {
-            ;StringTrimRight, stuff, stuff, (1)
-            ;stuff .= "."
-            alphacharatend := 1
-            ;numberstuff := % "_" . numberstuff
+            saveName := SubStr(saveName, 1, underScorePos - 1) ; remove 
+            versionString := RegExReplace(versionString, "[^0-9, .]") ; change to number only
         }
-        numberstuff := RegExReplace(stuff, "^.*?_")
-        numberstuff := RegExReplace(numberstuff, "[^0-9, .]")
+        else
+        {
+            versionString := "1"
+        }
     }
-    else
-    {
-        Numberstuff = ;
-        goto nounderscore
-    }
-    
-    if (extentioncompensation = 0) 
-    {
-        StringTrimRight, numberstuff, numberstuff, 1
-    }
-    Versionlength := StrLen(numberstuff)
-    if (alphacharatend = 1) 
-    {
-        Versionlength := Versionlength + 1
-    }
-    
-nounderscore:
-    if (numberstuff = "") 
-    { ; if the string is empty make it 1 and then tell it to skip deletion
-        numberstuff := "1"
-        skipflag := 1
-    }
-    numberstuff := numberstuff + 1 ; add 1 to the version number
-    if (RegExMatch(numberstuff, "[., 0{5}]")) 
-    { ; if theres a dot delete everything until after and including the dot
-        SplitPath, numberstuff,,,,numberstuff
-    }
-    
-    if !(InStr(Stuff, "_")) 
-    {
-        ;msgbox, yatta
-        numberstuff := % "_" . numberstuff
-        ;msgbox % numberstuff
-    } 
-    
-    Sendinput, {Right 1}
-    
-    if (skipflag = 1) 
-    {
-        goto skipdel1
-    }
-    
-    sleep, 5
-    Sendinput, {ShiftDown}{Left %Versionlength%}{ShiftUp}
-    SendInput, {BackSpace}
-    
-    sleep, 5
-return
 
-skipdel1:
-    Sendinput % numberstuff
-    Sendinput, {Enter}
-    skipflag := 0
-    alphacharatend := 0
-    numberstuff = ;
-    stuff = ;
+    versionString := versionString + 1 ; add 1 to the version number
+    
+    saveName = %saveName%_%versionString%
+
+    SendInput, {Delete}
+
+    sleep, 5
+
+    SendInput % saveName
+    SendInput, {Enter}        
     Blockinput, Off
-return
+return 
 
-return
+
+
 
 ; // CPT - 5/29/2020 - remove piano roll function 
 ; - remove 0todelete

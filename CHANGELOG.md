@@ -1,4 +1,13 @@
-## 5/29/2020
+# Changelog
+
+## 1.3.2 9/18/2020
+
+- Fix the version incrementor
+- Streamline and code clean version incrementor
+- More capitalization clean up
+
+## 1.3.1 5/29/2020
+
 - Replace random hover text with static LES text
 - Removed resetbrowsertobookmark code as it is mostly unused.
 - Removed double zero to delete 
